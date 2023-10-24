@@ -1,0 +1,45 @@
+#include <iostream>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+//#include "esp_dmx.h"
+#include "main.h"
+#include "Apple2Machine.h"
+#include "LodeRunner.h"
+
+Apple2Machine appleplus;
+int frame = 0;
+
+void App::run()
+{
+    vTaskDelay(pdMS_TO_TICKS(1000));
+     //Serial.printf("WiFi Failed!\n");
+}
+
+void RenderGame()
+{
+	//bool diskmotoron = appleplus.device.GetDiskMotorState();
+	//std::string disk = format_string("DISK MOTOR : %s", diskmotoron ? "ON" : "OFF");
+	appleplus.Render(frame);
+}
+
+
+extern "C" void app_main(void)
+{
+    App app;
+    appleplus.InitMachine();    
+
+    while (true)
+    {
+		if (!appleplus.device.dumpMachine && !appleplus.device.loaddumpmachine && !appleplus.device.loadromfile)
+		{
+			long long p = 17050;// *1.2f;
+			//appleplus.Run((int)p);
+		}
+
+        app.run();
+
+        if (frame++ > TARGET_FRAME) 
+			frame = 0;
+    }    
+}
