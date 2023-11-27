@@ -1,9 +1,9 @@
 
-#include <esp32/spiram.h>
+//#include <esp32/spiram.h>
 //#include <esp_himem.h>
-
-#include <ESP32Lib.h>
-#include <Ressources/Font6x8.h>
+#include "./Tools/Log.h"
+#include "./VGA/ESP32S3VGA.h"
+//#include <Ressources/Font6x8.h>
 #include "./AppleII/Apple2Machine.h"
 
 
@@ -21,51 +21,43 @@ VGA14Bit vga;
 const int redPins[] = {32, 27};
 const int greenPins[] = {14, 4};
 const int bluePins[] = {16, 18}; // 19
-VGA6Bit vga;
+const PinConfig pins(4,5,6,7,8,  9,10,11,12,13,14,  15,16,17,18,21,  1,2);
 
-int n_elements = 320 * 200 * 8;
+VGA vga;
 Apple2Machine machine;
 
 //initial setup
 void setup()
 {
-	//Serial.begin(9600);
 	Serial.begin(115200);
-        if(psramInit())
-		{
-        	Serial.println("\nPSRAM is correctly initialized");
-        }
-		else
-		{
-        	Serial.println("PSRAM not available");
-        	unsigned char * acc_data_all = (unsigned char *) ps_malloc (n_elements * sizeof (unsigned char));  
-        }
-
-	//need double buffering
-	vga.setFrameBufferCount(2);
-	//initializing i2s vga
-	//vga.init(vga.MODE200x150, redPins, greenPins, bluePins, hsyncPin, vsyncPin);
-	vga.init(vga.MODE320x200, redPins, greenPins, bluePins, hsyncPin, vsyncPin);
-	//setting the font
-	vga.setFont(Font6x8);
+	if(psramInit())
+		Serial.println("\nPSRAM is correctly initialized");
+	else
+		Serial.println("PSRAM not available");
 
 	DEBUG_PRINTLN("MODE320x200");
+	Mode mode = Mode::MODE_320x200x70;
+	if(!vga.init(pins, mode, 8, 2)) while(1) delay(1);
 
+	DEBUG_PRINTLN("INIT Machine");
+	machine.InitMachine();
 }
 
 int colorindex = 0;
-
 unsigned long heapCheckMillis = 0;
 unsigned long memlast = 0;
 
 void loop()
 {
-	unsigned char color[] = { vga.RGB(255, 0, 0),  vga.RGB(0, 255, 0), vga.RGB(0, 0, 255) };
+	//unsigned char color[] = { vga.RGB(255, 0, 0),  vga.RGB(0, 255, 0), vga.RGB(0, 0, 255) };
 	vga.clear(0);
 
-	delay(1000);
-	vga.fillRect(0, 0, vga.xres, vga.yres, color[colorindex]);
-	colorindex = colorindex + 1 >= 3 ? 0 : colorindex+1;
+	long long p = 17050;// *1.2f;
+	machine.Run((int)p);
+
+	//delay(1000);
+	//vga.fillRect(0, 0, vga.xres, vga.yres, color[colorindex]);
+	//colorindex = colorindex + 1 >= 3 ? 0 : colorindex+1;
 	vga.show();
 
 	if(millis() - heapCheckMillis > 1000)

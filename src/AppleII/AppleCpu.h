@@ -90,7 +90,7 @@ BYTE N : 1; //7: Negative
 #define LDY_ABSX	0xBC
 
 // No Operation
-#define NOP			0xEA
+#define APPLE_NOP			0xEA
 
 // JSR (Jump to Subroutine)
 #define JSR			0x20

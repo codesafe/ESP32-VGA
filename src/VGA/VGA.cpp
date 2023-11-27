@@ -1,225 +1,257 @@
-/*
-	Author: bitluni 2019
-	License: 
-	Creative Commons Attribution ShareAlike 4.0
-	https://creativecommons.org/licenses/by-sa/4.0/
-	
-	For further details check out: 
-		https://youtube.com/bitlunislab
-		https://github.com/bitluni
-		http://bitluni.net
-*/
 #include "VGA.h"
+#include <esp_rom_gpio.h>
+#include <esp_rom_sys.h>
+#include <hal/gpio_hal.h>
+#include <driver/periph_ctrl.h>
+#include <driver/gpio.h>
+#include <soc/lcd_cam_struct.h>
+#include <math.h>
+#include <esp_private/gdma.h>
 
-//hfront hsync hback pixels vfront vsync vback lines divy pixelclock hpolaritynegative vpolaritynegative
-const Mode VGA::MODE320x480(8, 48, 24, 320, 11, 2, 31, 480, 1, 12587500, 1, 1);
-const Mode VGA::MODE320x240(8, 48, 24, 320, 11, 2, 31, 480, 2, 12587500, 1, 1);
-const Mode VGA::MODE320x400(8, 48, 24, 320, 12, 2, 35, 400, 1, 12587500, 1, 0);
-const Mode VGA::MODE320x200(8, 48, 24, 320, 12, 2, 35, 400, 2, 12587500, 1, 0);
-const Mode VGA::MODE360x400(8, 54, 28, 360, 11, 2, 32, 400, 1, 14161000, 1, 0);
-const Mode VGA::MODE360x200(8, 54, 28, 360, 11, 2, 32, 400, 2, 14161000, 1, 0);
-const Mode VGA::MODE360x350(8, 54, 28, 360, 11, 2, 32, 350, 1, 14161000, 1, 1);
-const Mode VGA::MODE360x175 (8, 54, 28, 360, 11, 2, 32, 350, 2, 14161000, 1, 1);
+#ifndef min
+#define min(a,b)((a)<(b)?(a):(b))
+#endif
+#ifndef max
+#define max(a,b)((a)>(b)?(a):(b))
+#endif
 
-const Mode VGA::MODE320x350 (8, 48, 24, 320, 37, 2, 60, 350, 1, 12587500, 0, 1);
-const Mode VGA::MODE320x175(8, 48, 24, 320, 37, 2, 60, 350, 2, 12587500, 0, 1);
-
-const Mode VGA::MODE400x300(12, 36, 64, 400, 1, 2, 22, 600, 2, 18000000, 0, 0);
-const Mode VGA::MODE400x150(12, 36, 64, 400, 1, 2, 22, 600, 4, 18000000, 0, 0);
-const Mode VGA::MODE400x100(12, 36, 64, 400, 1, 2, 22, 600, 6, 18000000, 0, 0);
-const Mode VGA::MODE200x150(6, 18, 32, 200, 1, 2, 22, 600, 4, 9000000, 0, 0);
-//const Mode VGA::MODE200x150(10, 32, 22, 200, 1, 4, 23, 600, 4, 10000000, 0, 0);	//60Hz version
-
-//500 pixels horizontal it's based on 640x480
-const Mode VGA::MODE500x480(12, 76, 38, 500, 11, 2, 31, 480, 1, 19667968, 1, 1);
-const Mode VGA::MODE500x240(12, 76, 38, 500, 11, 2, 31, 480, 2, 19667968, 1, 1);
-
-//base modes for custom mode calculations
-const Mode VGA::MODE1280x1024(48, 112, 248, 1280, 1, 3, 38, 1024, 1, 108000000, 0, 0);
-const Mode VGA::MODE1280x960(80, 136, 216, 1280, 1, 3, 30, 960, 1, 101200000, 1, 0);
-const Mode VGA::MODE1280x800(64, 136, 200, 1280, 1, 3, 24, 800, 1, 83640000, 1, 0);
-const Mode VGA::MODE1024x768(24, 136, 160, 1024, 3, 6, 29, 768, 1, 65000000, 1, 1);
-const Mode VGA::MODE800x600(24, 72, 128, 800, 1, 2, 22, 600, 1, 36000000, 0, 0);
-const Mode VGA::MODE720x400(16, 108, 56, 720, 11, 2, 32, 400, 1, 28322000, 1, 0);
-const Mode VGA::MODE720x350(16, 108, 56, 720, 11, 2, 32, 350, 1, 28322000, 1, 1);
-const Mode VGA::MODE640x480(16, 96, 48, 640, 11, 2, 31, 480, 1, 25175000, 1, 1);
-const Mode VGA::MODE640x400(16, 96, 48, 640, 12, 2, 35, 400, 1, 25175000, 1, 0);
-const Mode VGA::MODE640x350(16, 96, 48, 640, 37, 2, 60, 350, 1, 25175000, 0, 1);
-
-const PinConfig VGA::VGAv01(2, 4, 12, 13, 14,  15, 16, 17, 18, 19,  21, 22, 23, 27,  32, 33,  -1);
-const PinConfig VGA::VGABlackEdition(2, 4, 12, 13, 14,  15, 16, 17, 18, 19,  21, 22, 23, 27,  32, 33,  -1);
-const PinConfig VGA::VGAWhiteEdition(5, 14, 13, 15, 2,  19, 18, 17, 4, 16,  27, 22, 12, 21,  32, 33, -1);
-const PinConfig VGA::PicoVGA(-1, -1, -1, 18, 5,  -1, -1, -1, 14, 4,  -1, -1, 27, 15,  32, 33,  -1);
-
-VGA::VGA(const int i2sIndex)
-	: I2S(i2sIndex)
-{
-	lineBufferCount = 8;
-	dmaBufferDescriptors = 0;
+//borrowed from esp code
+#define HAL_FORCE_MODIFY_U32_REG_FIELD(base_reg, reg_field, field_val)    \
+{                                                           \
+	uint32_t temp_val = base_reg.val;                       \
+	typeof(base_reg) temp_reg;                              \
+	temp_reg.val = temp_val;                                \
+	temp_reg.reg_field = (field_val);                       \
+	(base_reg).val = temp_reg.val;                          \
 }
 
-bool VGA::init(const Mode &mode, const int *pinMap, const int bitCount, const int clockPin)
+VGA::VGA()
 {
+	bufferCount = 1;
+	dmaBuffer = 0;
+	usePsram = true;
+	dmaChannel = 0;
+}
+
+VGA::~VGA()
+{
+	bits = 0;
+	backBuffer = 0;
+}
+
+extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
+
+void VGA::attachPinToSignal(int pin, int signal)
+{
+	esp_rom_gpio_connect_out_signal(pin, signal, false, false);
+	gpio_hal_iomux_func_sel(GPIO_PIN_MUX_REG[pin], PIN_FUNC_GPIO);
+	gpio_set_drive_capability((gpio_num_t)pin, (gpio_drive_cap_t)3);
+}
+
+bool VGA::init(const PinConfig pins, const Mode mode, int bits, int buffercount)
+{
+	this->pins = pins;
 	this->mode = mode;
-	int xres = mode.hRes;
-	int yres = mode.vRes / mode.vDiv;
-	initSyncBits();
-	propagateResolution(xres, yres);
-	this->vsyncPin = vsyncPin;
-	this->hsyncPin = hsyncPin;
-	totalLines = mode.linesPerField();
-	allocateLineBuffers();
-	currentLine = 0;
-	vSyncPassed = false;
-	initParallelOutputMode(pinMap, mode.pixelClock, bitCount, clockPin);
-	startTX();
+	this->bits = bits;
+	backBuffer = 0;
+	bufferCount = buffercount;
+
+	//TODO check start
+
+	dmaBuffer = new DMAVideoBuffer(mode.vRes, mode.hRes * (bits / 8), mode.vClones, true, usePsram, bufferCount);
+	if(!dmaBuffer->isValid())
+	{
+		delete dmaBuffer;
+		return false;
+	}
+
+	periph_module_enable(PERIPH_LCD_CAM_MODULE);
+	periph_module_reset(PERIPH_LCD_CAM_MODULE);
+	LCD_CAM.lcd_user.lcd_reset = 1;
+	esp_rom_delay_us(100);
+
+	
+	//f=240000000/(n+1)
+	//n=240000000/f-1;
+	int N = round(240000000.0/(double)mode.frequency);
+	if(N < 2) N = 2;
+	//clk = source / (N + b/a)
+	LCD_CAM.lcd_clock.clk_en = 1;
+	LCD_CAM.lcd_clock.lcd_clk_sel = 2;			// PLL240M
+	// - For integer divider, LCD_CAM_LCD_CLKM_DIV_A and LCD_CAM_LCD_CLKM_DIV_B are cleared.
+	// - For fractional divider, the value of LCD_CAM_LCD_CLKM_DIV_B should be less than the value of LCD_CAM_LCD_CLKM_DIV_A.
+	LCD_CAM.lcd_clock.lcd_clkm_div_a = 0;
+	LCD_CAM.lcd_clock.lcd_clkm_div_b = 0;
+	LCD_CAM.lcd_clock.lcd_clkm_div_num = N; 	// 0 => 256; 1 => 2; 14 compfy
+	LCD_CAM.lcd_clock.lcd_ck_out_edge = 0;		
+	LCD_CAM.lcd_clock.lcd_ck_idle_edge = 0;
+	LCD_CAM.lcd_clock.lcd_clk_equ_sysclk = 1;
+
+
+	LCD_CAM.lcd_ctrl.lcd_rgb_mode_en = 1;
+	LCD_CAM.lcd_user.lcd_2byte_en = (bits==8)?0:1;
+    LCD_CAM.lcd_user.lcd_cmd = 0;
+    LCD_CAM.lcd_user.lcd_dummy = 0;
+    LCD_CAM.lcd_user.lcd_dout = 1;
+    LCD_CAM.lcd_user.lcd_cmd_2_cycle_en = 0;
+    LCD_CAM.lcd_user.lcd_dummy_cyclelen = 0;//-1;
+    LCD_CAM.lcd_user.lcd_dout_cyclelen = 0;
+	LCD_CAM.lcd_user.lcd_always_out_en = 1;
+    LCD_CAM.lcd_ctrl2.lcd_hsync_idle_pol = mode.hPol ^ 1;
+    LCD_CAM.lcd_ctrl2.lcd_vsync_idle_pol = mode.vPol ^ 1;
+    LCD_CAM.lcd_ctrl2.lcd_de_idle_pol = 1;	
+
+	LCD_CAM.lcd_misc.lcd_bk_en = 1;	
+    LCD_CAM.lcd_misc.lcd_vfk_cyclelen = 0;
+    LCD_CAM.lcd_misc.lcd_vbk_cyclelen = 0;
+
+	LCD_CAM.lcd_ctrl2.lcd_hsync_width = mode.hSync - 1;				//7 bit
+    LCD_CAM.lcd_ctrl.lcd_hb_front = mode.blankHorizontal() - 1;		//11 bit
+    LCD_CAM.lcd_ctrl1.lcd_ha_width = mode.hRes - 1;					//12 bit
+    LCD_CAM.lcd_ctrl1.lcd_ht_width = mode.totalHorizontal();			//12 bit
+
+	LCD_CAM.lcd_ctrl2.lcd_vsync_width = mode.vSync - 1;				//7bit
+    HAL_FORCE_MODIFY_U32_REG_FIELD(LCD_CAM.lcd_ctrl1, lcd_vb_front, mode.vSync + mode.vBack - 1);		//8bit
+    LCD_CAM.lcd_ctrl.lcd_va_height = mode.vRes * mode.vClones - 1;					//10 bit
+    LCD_CAM.lcd_ctrl.lcd_vt_height = mode.totalVertical() - 1;		//10 bit
+
+	LCD_CAM.lcd_ctrl2.lcd_hs_blank_en = 1;
+	HAL_FORCE_MODIFY_U32_REG_FIELD(LCD_CAM.lcd_ctrl2, lcd_hsync_position, 0);//mode.hFront);
+
+	LCD_CAM.lcd_misc.lcd_next_frame_en = 1; //?? limitation
+
+	if(bits == 8)
+	{
+		int pins[8] = {
+			this->pins.r[2], this->pins.r[3], this->pins.r[4],
+			this->pins.g[3], this->pins.g[4], this->pins.g[5],
+			this->pins.b[3], this->pins.b[4]
+		};
+		for (int i = 0; i < bits; i++) 
+			if (pins[i] >= 0) 
+				attachPinToSignal(pins[i], LCD_DATA_OUT0_IDX + i);
+	}
+	else if(bits == 16)
+	{
+		int pins[16] = {
+			this->pins.r[0], this->pins.r[1], this->pins.r[2], this->pins.r[3], this->pins.r[4],
+			this->pins.g[0], this->pins.g[1], this->pins.g[2], this->pins.g[3], this->pins.g[4], this->pins.g[5],
+			this->pins.b[0], this->pins.b[1], this->pins.b[2], this->pins.b[3], this->pins.b[4]
+		};
+		for (int i = 0; i < bits; i++) 
+			if (pins[i] >= 0) 
+				attachPinToSignal(pins[i], LCD_DATA_OUT0_IDX + i);
+	}
+	attachPinToSignal(this->pins.hSync, LCD_H_SYNC_IDX);
+	attachPinToSignal(this->pins.vSync, LCD_V_SYNC_IDX);
+  
+	gdma_channel_alloc_config_t dma_chan_config = 
+	{
+		.direction = GDMA_CHANNEL_DIRECTION_TX,
+	};
+	gdma_channel_handle_t dmaCh;
+	gdma_new_channel(&dma_chan_config, &dmaCh);
+	dmaChannel = (int)dmaCh;
+	gdma_connect(dmaCh, GDMA_MAKE_TRIGGER(GDMA_TRIG_PERIPH_LCD, 0));
+	gdma_transfer_ability_t ability = 
+	{
+        .sram_trans_align = 4,
+        .psram_trans_align = 64,
+    };
+    gdma_set_transfer_ability(dmaCh, &ability);
+
+	//TODO check end
+
 	return true;
 }
 
-void VGA::setLineBufferCount(int lineBufferCount)
+bool VGA::start()
 {
-	this->lineBufferCount = lineBufferCount;
+	//TODO check start
+	//very delicate... dma might be late for peripheral
+	gdma_reset((gdma_channel_handle_t)dmaChannel);
+    esp_rom_delay_us(1);	
+    LCD_CAM.lcd_user.lcd_start = 0;
+    LCD_CAM.lcd_user.lcd_update = 1;
+	esp_rom_delay_us(1);
+	LCD_CAM.lcd_misc.lcd_afifo_reset = 1;
+    LCD_CAM.lcd_user.lcd_update = 1;
+	gdma_start((gdma_channel_handle_t)dmaChannel, (intptr_t)dmaBuffer->getDescriptor());
+    esp_rom_delay_us(1);
+    LCD_CAM.lcd_user.lcd_update = 1;
+	LCD_CAM.lcd_user.lcd_start = 1;
+	//TODO check end
+	return true;
 }
 
-void VGA::allocateLineBuffers()
+bool VGA::show()
 {
-	allocateLineBuffers(lineBufferCount);
+	//TODO check start
+	dmaBuffer->flush(backBuffer);
+	if(bufferCount <= 1) 
+		return true;
+	dmaBuffer->attachBuffer(backBuffer);
+	backBuffer = (backBuffer + 1) % bufferCount;
+	//TODO check end
+	return true;
 }
 
-/// simple ringbuffer of blocks of size bytes each
-void VGA::allocateLineBuffers(const int lines)
+void VGA::dot(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
-	dmaBufferDescriptorCount = lines;
-	dmaBufferDescriptors = DMABufferDescriptor::allocateDescriptors(dmaBufferDescriptorCount);
-	int bytes = (mode.hFront + mode.hSync + mode.hBack + mode.hRes) * bytesPerSample();
-	for (int i = 0; i < dmaBufferDescriptorCount; i++)
-	{
-		dmaBufferDescriptors[i].setBuffer(DMABufferDescriptor::allocateBuffer(bytes, true), bytes); //front porch + hsync + back porch + pixels
-		if (i)
-			dmaBufferDescriptors[i - 1].next(dmaBufferDescriptors[i]);
-	}
-	dmaBufferDescriptors[dmaBufferDescriptorCount - 1].next(dmaBufferDescriptors[0]);
+	int v = y;
+	int h = x;
+	if(x >= mode.hRes || y >= mode.vRes) return;
+	if(bits == 8)
+		dmaBuffer->getLineAddr8(y, backBuffer)[x] = (r >> 5) | ((g >> 5) << 3) | (b & 0b11000000);
+	else if(bits == 16)
+		dmaBuffer->getLineAddr16(y, backBuffer)[x] = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+
 }
 
-///complete ringbuffer from frame
-void VGA::allocateLineBuffers(void **frameBuffer)
+void VGA::dot(int x, int y, int rgb)
 {
-	dmaBufferDescriptorCount = totalLines * 2;
-	int inactiveSamples = (mode.hFront + mode.hSync + mode.hBack + 3) & 0xfffffffc;
-	vSyncInactiveBuffer = DMABufferDescriptor::allocateBuffer(inactiveSamples * bytesPerSample(), true);
-	vSyncActiveBuffer = DMABufferDescriptor::allocateBuffer(mode.hRes * bytesPerSample(), true);
-	inactiveBuffer = DMABufferDescriptor::allocateBuffer(inactiveSamples * bytesPerSample(), true);
-	blankActiveBuffer = DMABufferDescriptor::allocateBuffer(mode.hRes * bytesPerSample(), true);
-	if(bytesPerSample() == 1)
-	{
-		for (int i = 0; i < inactiveSamples; i++)
-		{
-			if (i >= mode.hFront && i < mode.hFront + mode.hSync)
-			{
-				((unsigned char *)vSyncInactiveBuffer)[i ^ 2] = hsyncBit | vsyncBit;
-				((unsigned char *)inactiveBuffer)[i ^ 2] = hsyncBit | vsyncBitI;
-			}
-			else
-			{
-				((unsigned char *)vSyncInactiveBuffer)[i ^ 2] = hsyncBitI | vsyncBit;
-				((unsigned char *)inactiveBuffer)[i ^ 2] = hsyncBitI | vsyncBitI;
-			}
-		}
-		for (int i = 0; i < mode.hRes; i++)
-		{
-			((unsigned char *)vSyncActiveBuffer)[i ^ 2] = hsyncBitI | vsyncBit;
-			((unsigned char *)blankActiveBuffer)[i ^ 2] = hsyncBitI | vsyncBitI;
-		}
-	}
-	else if(bytesPerSample() == 2)
-	{
-		for (int i = 0; i < inactiveSamples; i++)
-		{
-			if (i >= mode.hFront && i < mode.hFront + mode.hSync)
-			{
-				((unsigned short *)vSyncInactiveBuffer)[i ^ 1] = hsyncBit | vsyncBit;
-				((unsigned short *)inactiveBuffer)[i ^ 1] = hsyncBit | vsyncBitI;
-			}
-			else
-			{
-				((unsigned short *)vSyncInactiveBuffer)[i ^ 1] = hsyncBitI | vsyncBit;
-				((unsigned short *)inactiveBuffer)[i ^ 1] = hsyncBitI | vsyncBitI;
-			}
-		}
-		for (int i = 0; i < mode.hRes; i++)
-		{
-			((unsigned short *)vSyncActiveBuffer)[i ^ 1] = hsyncBitI | vsyncBit;
-			((unsigned short *)blankActiveBuffer)[i ^ 1] = hsyncBitI | vsyncBitI;
-		}
-	}
+	int v = y;
+	int h = x;
+	if(x >= mode.hRes || y >= mode.vRes) return;
+	if(bits == 8)
+		dmaBuffer->getLineAddr8(y, backBuffer)[x] = rgb;
+	else if(bits == 16)
+		dmaBuffer->getLineAddr16(y, backBuffer)[x] = rgb;
 
-	dmaBufferDescriptors = DMABufferDescriptor::allocateDescriptors(dmaBufferDescriptorCount);
-	for (int i = 0; i < dmaBufferDescriptorCount; i++)
-		dmaBufferDescriptors[i].next(dmaBufferDescriptors[(i + 1) % dmaBufferDescriptorCount]);
-	int d = 0;
-	for (int i = 0; i < mode.vFront; i++)
-	{
-		dmaBufferDescriptors[d++].setBuffer(inactiveBuffer, inactiveSamples * bytesPerSample());
-		dmaBufferDescriptors[d++].setBuffer(blankActiveBuffer, mode.hRes * bytesPerSample());
-	}
-	for (int i = 0; i < mode.vSync; i++)
-	{
-		dmaBufferDescriptors[d++].setBuffer(vSyncInactiveBuffer, inactiveSamples * bytesPerSample());
-		dmaBufferDescriptors[d++].setBuffer(vSyncActiveBuffer, mode.hRes * bytesPerSample());
-	}
-	for (int i = 0; i < mode.vBack; i++)
-	{
-		dmaBufferDescriptors[d++].setBuffer(inactiveBuffer, inactiveSamples * bytesPerSample());
-		dmaBufferDescriptors[d++].setBuffer(blankActiveBuffer, mode.hRes * bytesPerSample());
-	}
-	for (int i = 0; i < mode.vRes; i++)
-	{
-		dmaBufferDescriptors[d++].setBuffer(inactiveBuffer, inactiveSamples * bytesPerSample());
-		dmaBufferDescriptors[d++].setBuffer(frameBuffer[i / mode.vDiv], mode.hRes * bytesPerSample());
-	}
 }
 
-void VGA::vSync()
+void VGA::dotdit(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
-	vSyncPassed = true;
-}
-
-void VGA::interrupt()
-{
-	unsigned long *signal = (unsigned long *)dmaBufferDescriptors[dmaBufferDescriptorActive].buffer();
-	unsigned long *pixels = &((unsigned long *)dmaBufferDescriptors[dmaBufferDescriptorActive].buffer())[(mode.hSync + mode.hBack) / 2];
-	unsigned long base, baseh;
-	if (currentLine >= mode.vFront && currentLine < mode.vFront + mode.vSync)
+	if(x >= mode.hRes || y >= mode.vRes) return;
+	if(bits == 8)
 	{
-		baseh = (vsyncBit | hsyncBit) | ((vsyncBit | hsyncBit) << 16);
-		base = (vsyncBit | hsyncBitI) | ((vsyncBit | hsyncBitI) << 16);
+		r = min((rand() & 31) | (r & 0xe0), 255);
+		g = min((rand() & 31) | (g & 0xe0), 255);
+		b = min((rand() & 63) | (b & 0xc0), 255);
+		dmaBuffer->getLineAddr8(y, backBuffer)[x] = (r >> 5) | ((g >> 5) << 3) | (b & 0b11000000);
 	}
 	else
+	if(bits == 16)
 	{
-		baseh = (vsyncBitI | hsyncBit) | ((vsyncBitI | hsyncBit) << 16);
-		base = (vsyncBitI | hsyncBitI) | ((vsyncBitI | hsyncBitI) << 16);
-	}
-	for (int i = 0; i < mode.hSync / 2; i++)
-		signal[i] = baseh;
-	for (int i = mode.hSync / 2; i < (mode.hSync + mode.hBack) / 2; i++)
-		signal[i] = base;
-
-	int y = (currentLine - mode.vFront - mode.vSync - mode.vBack) / mode.vDiv;
-	if (y >= 0 && y < mode.vRes)
-		interruptPixelLine(y, pixels, base);
-	else
-		for (int i = 0; i < mode.hRes / 2; i++)
-		{
-			pixels[i] = base | (base << 16);
-		}
-	for (int i = 0; i < mode.hFront / 2; i++)
-		signal[i + (mode.hSync + mode.hBack + mode.hRes) / 2] = base;
-	currentLine = (currentLine + 1) % totalLines;
-	dmaBufferDescriptorActive = (dmaBufferDescriptorActive + 1) % dmaBufferDescriptorCount;
-	if (currentLine == 0)
-		vSync();
+		r = min((rand() & 7) | (r & 0xf8), 255);
+		g = min((rand() & 3) | (g & 0xfc), 255); 
+		b = min((rand() & 7) | (b & 0xf8), 255);
+		dmaBuffer->getLineAddr16(y, backBuffer)[x] = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+	}	
 }
 
-void VGA::interruptPixelLine(int y, unsigned long *pixels, unsigned long syncBits)
+int VGA::rgb(uint8_t r, uint8_t g, uint8_t b)
 {
+	if(bits == 8)
+		return (r >> 5) | ((g >> 5) << 3) | (b & 0b11000000);
+	else if(bits == 16)
+		return (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+
+}
+
+void VGA::clear(int rgb)
+{
+	for(int y = 0; y < mode.vRes; y++)
+		for(int x = 0; x < mode.hRes; x++)
+			dot(x, y, rgb);
 }

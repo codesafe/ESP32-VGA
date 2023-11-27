@@ -296,8 +296,8 @@ unsigned char* AppleFont::read_bmp_memory(char* buffer, int* _w, int* _h)
 	int lineSize = (w / 8 + (w / 8) % 4);
 	int fileSize = lineSize * h;
 
-	unsigned char* img = (unsigned char*)malloc(w * h);
-	unsigned char* data = (unsigned char*)malloc(fileSize);
+	unsigned char* img = (unsigned char*)ps_malloc(w * h);
+	unsigned char* data = (unsigned char*)ps_malloc(fileSize);
 
 	// skip
 	pos = 54;

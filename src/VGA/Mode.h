@@ -1,122 +1,87 @@
-/*
-	Author: bitluni 2019
-	License: 
-	Creative Commons Attribution ShareAlike 4.0
-	https://creativecommons.org/licenses/by-sa/4.0/
-	
-	For further details check out: 
-		https://youtube.com/bitlunislab
-		https://github.com/bitluni
-		http://bitluni.net
-*/
-#pragma once
+#ifndef MODE_H
+#define MODE_H
+#include <stdint.h>
 
+class Mode;
 class Mode
 {
-  public:
-	int hFront;
-	int hSync;
-	int hBack;
-	int hRes;
-	int vFront;
-	int vSync;
-	int vBack;
-	int vRes;
-	int vDiv;
-	unsigned long pixelClock;
-	int hSyncPolarity;
-	int vSyncPolarity;
-	float aspect;
-	int activeLineCount;
-	Mode(
-		const int hFront = 0,
-		const int hSync = 0,
-		const int hBack = 0,
-		const int hRes = 0,
-		const int vFront = 0,
-		const int vSync = 0,
-		const int vBack = 0,
-		const int vRes = 0,
-		const int vDiv = 1,
-		const unsigned long pixelClock = 0,
-		const int hSyncPolarity = 1,
-		const int vSyncPolarity = 1,
-		const float aspect = 1.f)
-		: hFront(hFront),
-		  hSync(hSync),
-		  hBack(hBack),
-		  hRes(hRes),
-		  vFront(vFront),
-		  vSync(vSync),
-		  vBack(vBack),
-		  vRes(vRes),
-		  vDiv(vDiv),
-		  pixelClock(pixelClock),
-		  hSyncPolarity(hSyncPolarity),
-		  vSyncPolarity(vSyncPolarity),
-		  aspect(aspect),
-		  activeLineCount(vRes / vDiv)
+	public:
+	static const Mode MODE_640x400x70;
+	static const Mode MODE_320x200x70;
+	static const Mode MODE_640x480x60;
+	static const Mode MODE_320x240x60;
+	static const Mode MODE_800x600x56;
+	static const Mode MODE_800x600x60;
+	static const Mode MODE_400x300x60;
+	static const Mode MODE_1024x768x43;
+	static const Mode MODE_1024x768x60;
+	static const Mode MODE_1280x720x60;
+
+	public:
+	uint32_t hFront, hSync, hBack, hRes, hPol;
+	uint32_t vFront, vSync, vBack, vRes, vPol, vClones;
+	uint32_t frequency;
+	
+	Mode()
 	{
 	}
-
-	int maxXRes() const
+	
+	Mode(const 
+	
+	Mode &m)
 	{
-		return (int(hRes * 19673499. / pixelClock) & 0xfffffffe);
+		this->hFront = m.hFront;
+		this->hSync = m.hSync;
+		this->hBack = m.hBack;
+		this->hRes = m.hRes;
+		this->hPol = m.hPol;
+		this->vFront = m.vFront;
+		this->vSync = m.vSync;
+		this->vBack = m.vBack;
+		this->vRes = m.vRes;
+		this->vPol = m.vPol;
+		this->frequency = m.frequency;
+		this->vClones = m.vClones;
 	}
 
-	int linesPerField() const
+	
+	
+	Mode(int hFront, int hSync, int hBack, int hRes, int vFront, int vSync, int vBack, int vRes, int frequency, 
+		int hPol = 1, int vPol = 1, int vClones = 1)
 	{
-		return vFront + vSync + vBack + vRes;
+		this->hFront = hFront;
+		this->hSync = hSync;
+		this->hBack = hBack;
+		this->hRes = hRes;
+		this->hPol = hPol;
+		this->vFront = vFront;
+		this->vSync = vSync;
+		this->vBack = vBack;
+		this->vRes = vRes;
+		this->vPol = vPol;
+		this->frequency = frequency;
+		this->vClones = vClones;
 	}
 
-	int pixelsPerLine() const
+	int totalHorizontal() const
 	{
 		return hFront + hSync + hBack + hRes;
 	}
 
-	Mode custom(int xres, int yres, int fixedYDivider = 0) const
+	int totalVertical() const
 	{
-		xres = (xres + 3) & 0xfffffffc;
-		float f = float(xres) / hRes;
-		int hs = int(hSync * f + 3) & 0xfffffffc;
-		int hb = int((hSync + hBack - hs / f) * f + 3) & 0xfffffffc;
-		int hr = xres;
-		int hf = int((pixelsPerLine() - (hs + hb + hr) / f) * f + 3) & 0xfffffffc;
-		
-		int vd = fixedYDivider ? fixedYDivider : (vRes / yres);
-		int vr = yres * vd;
-		int vf = vFront + vRes / 2 - vr / 2;
-		int vb = vBack + vRes / 2 - (vr - vr / 2);
-		long pc = long(pixelClock * f);
-		return Mode(hf, hs, hb, hr, vf, vSync, vb, vr, vd, pc, hSyncPolarity, vSyncPolarity);
+		return vFront + vSync + vBack + vRes * vClones;
 	}
 
-	template<class Output>
-	void print(Output &output) const
+	int blankHorizontal() const
 	{
-		output.print("hFront: ");
-		output.println(hFront);
-		output.print("hSync: ");
- 		output.println(hSync);
-		output.print("hBack: ");
-		output.println(hBack);
-		output.print("hRes: ");
-		output.println(hRes);
-		output.print("vFront: ");
-		output.println(vFront);
-		output.print("vSync: ");
-		output.println(vSync);
-		output.print("vBack: ");
-		output.println(vBack);
-		output.print("vRes: ");
-		output.println(vRes);
-		output.print("vDiv: ");
-		output.println(vDiv);
-		output.print("pixelClock: ");
-		output.println(pixelClock);
-		output.print("hSyncPolarity: ");
-		output.println(hSyncPolarity);
-		output.print("vSyncPolarity: ");
-		output.println(vSyncPolarity);
+		return hFront + hSync + hBack;
+	}
+
+	int blankVertical() const
+	{
+		return vFront + vSync + vBack;
 	}
 };
+
+#endif //MODE_h

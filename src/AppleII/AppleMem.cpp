@@ -17,22 +17,22 @@ Memory::~Memory()
 
 void Memory::Create()
 {
-	ram = new BYTE[RAMSIZE];  // 48K of ram in $000-$BFFF
-	rom = new BYTE[ROMSIZE];  // 12K of rom in $D000-$FFFF
-	lgc = new BYTE[LGCSIZE];
-	bk2 = new BYTE[BK2SIZE];
-	sl6 = new BYTE[SL6SIZE];
+	ram = (BYTE*)ps_malloc(RAMSIZE);  // 48K of ram in $000-$BFFF
+	rom = (BYTE*)ps_malloc(ROMSIZE);  // 12K of rom in $D000-$FFFF
+	lgc = (BYTE*)ps_malloc(LGCSIZE);
+	bk2 = (BYTE*)ps_malloc(BK2SIZE);
+	sl6 = (BYTE*)ps_malloc(SL6SIZE);
 
 	Reset();
 }
 
 void Memory::Destroy()
 {
-	delete [] ram;
-	delete [] rom;
-	delete [] lgc;
-	delete [] bk2;
-	delete [] sl6;
+	free(ram);
+	free(rom);
+	free(lgc);
+	free(bk2);
+	free(sl6);
 }
 
 void Memory::Reset()

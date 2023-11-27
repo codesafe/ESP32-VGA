@@ -1,4 +1,5 @@
-﻿/*
+﻿
+/*
 	MOS 6502 CPU Emulator
 */
 #include <assert.h>
@@ -1747,7 +1748,7 @@ int CPU::Run(Memory &mem, int cycle)
 			}
 			break;
 
-			case NOP :
+			case APPLE_NOP :
 				cycle--;
 			break;
 

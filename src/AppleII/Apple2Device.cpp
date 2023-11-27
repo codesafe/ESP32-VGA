@@ -69,7 +69,7 @@ Apple2Device::Apple2Device()
 Apple2Device::~Apple2Device()
 {
 	if (backbuffer != NULL)
-		delete[] backbuffer;
+		free(backbuffer);
 
 
 	//SDL_AudioQuit();
@@ -84,7 +84,7 @@ void Apple2Device::Create(CPU* cpu)
 	zoomscale = 3;
 
 	// 스크린 백버퍼
-	backbuffer = new unsigned char[SCREENSIZE_X * SCREENSIZE_Y];
+	backbuffer = (BYTE*)ps_malloc(SCREENSIZE_X * SCREENSIZE_Y);
 	ClearScreen();
 /*
 	renderImage.data = backbuffer;
