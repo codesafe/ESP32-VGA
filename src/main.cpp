@@ -1,9 +1,6 @@
 #include <Arduino.h>
 #include <SPIFFS.h>
 
-//#include <esp32/spiram.h>
-
-
 #include "./Tools/Log.h"
 #include "./VGA/ESP32S3VGA.h"
 #include "./AppleII/Apple2Machine.h"
@@ -109,7 +106,7 @@ void setup()
     }
 
 	//listDir(SPIFFS, "/", 0);
-	readFile(SPIFFS, "/loderunner.nib");
+	//readFile(SPIFFS, "/loderunner.nib");
 
 	machine = new Apple2Machine();
 	vga = new VGA();

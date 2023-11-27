@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <Arduino.h>
+#include <SPIFFS.h>
 
 #define SBYTE		signed char
 #define BYTE		unsigned char
