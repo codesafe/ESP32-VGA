@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "AppleFont.h"
 #include "Apple2Device.h"
-//#include "raylib.h"
+#include "./Tools/Log.h"
 
 
 const unsigned char normalfont[958] = {
@@ -175,6 +175,7 @@ const unsigned char inversefont[958] = {
 
 AppleFont::AppleFont() 
 {
+	DEBUG_PRINTLN("Construct Font");
 }
 
 AppleFont::~AppleFont() 

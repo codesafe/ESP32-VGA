@@ -5,11 +5,13 @@
 #include <assert.h>
 #include "AppleCPU.h"
 #include "AppleMem.h"
+#include "./Tools/Log.h"
 
 #define USEOLD	0
 
 CPU::CPU()
 {
+	DEBUG_PRINTLN("Construct CPU");
 	tick = 0;
 	InitInstructionName();
 	Reset();

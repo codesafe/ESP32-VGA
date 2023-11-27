@@ -1,11 +1,12 @@
 #include "Predef.h"
-//#include "rombios.h"
+#include "rombios.h"
 #include "Apple2Machine.h"
+#include "./Tools/Log.h"
 
 
 Apple2Machine::Apple2Machine()
 {
-
+	DEBUG_PRINTLN("Construct Apple2Machine");
 }
 
 Apple2Machine::~Apple2Machine()
@@ -38,8 +39,8 @@ void Apple2Machine::InitMachine()
 // 롬을 내장
 bool Apple2Machine::Booting()
 {
-//	memcpy(mem.rom, appleIIrom, ROMSIZE);
-//	memcpy(mem.sl6, diskII, SL6SIZE);
+	memcpy(mem.rom, appleIIrom, ROMSIZE);
+	memcpy(mem.sl6, diskII, SL6SIZE);
 	cpu.Reset(mem);
 
 	return true;
@@ -52,7 +53,7 @@ bool Apple2Machine::UploadRom()
 
 	// load the Apple II+ ROM
 	BYTE* rom =(BYTE*)ps_malloc(ROMSIZE);
-	FILE* fp = fopen("rom/appleII+.rom", "rb"); 
+	FILE* fp = fopen("/loderunner.nib", "rb"); 
 	if (fp)
 	{
 #if 0

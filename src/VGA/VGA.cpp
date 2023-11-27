@@ -7,6 +7,7 @@
 #include <soc/lcd_cam_struct.h>
 #include <math.h>
 #include <esp_private/gdma.h>
+#include "./Tools/Log.h"
 
 #ifndef min
 #define min(a,b)((a)<(b)?(a):(b))
@@ -27,6 +28,8 @@
 
 VGA::VGA()
 {
+	DEBUG_PRINTLN("INIT VGA");
+
 	bufferCount = 1;
 	dmaBuffer = 0;
 	usePsram = true;

@@ -8,7 +8,7 @@
 //#include "raylib.h"
 //#include "SDL.h"
 //#include "dsk2nib.h"
-
+#include "./Tools/Log.h"
 
 /////////////////////////////////////////////////////////////////////////// 
 
@@ -62,6 +62,7 @@ const int hcolor[16][3] = {                                                   //
 
 Apple2Device::Apple2Device()
 {
+	DEBUG_PRINTLN("Construct Apple2Device");
 	backbuffer = NULL;
 	Reset();
 }

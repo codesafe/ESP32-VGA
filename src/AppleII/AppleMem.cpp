@@ -4,9 +4,11 @@
 */
 
 #include "AppleMem.h"
+#include "Tools/Log.h"
 
 Memory::Memory()
 {
+	DEBUG_PRINTLN("Construct Memory");
 	device = NULL;
 }
 
