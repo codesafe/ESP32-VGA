@@ -35,7 +35,7 @@ struct FloppyDrive
 
 	FloppyDrive()
 	{
-		data = new BYTE [232960];
+		data = (BYTE*)ps_malloc(232960);
 	}
 
 	void Reset()
