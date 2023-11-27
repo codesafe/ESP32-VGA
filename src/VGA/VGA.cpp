@@ -246,7 +246,8 @@ int VGA::rgb(uint8_t r, uint8_t g, uint8_t b)
 		return (r >> 5) | ((g >> 5) << 3) | (b & 0b11000000);
 	else if(bits == 16)
 		return (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-
+		
+	return 0;
 }
 
 void VGA::clear(int rgb)

@@ -1,27 +1,29 @@
 
-//#include <esp32/spiram.h>
-//#include <esp_himem.h>
 #include "./Tools/Log.h"
 #include "./VGA/ESP32S3VGA.h"
-//#include <Ressources/Font6x8.h>
 #include "./AppleII/Apple2Machine.h"
 
-
-const int hsyncPin = 23;
-const int vsyncPin = 15;
-
 //pin configuration
-/*
-const int redPins[] = {32, 33, 22, 21, 27};
-const int greenPins[] = {14, 12, 13, 2, 4};
-const int bluePins[] = {16, 17, 5, 18}; // 19
-VGA14Bit vga;
-*/
+#define PIN_NULL	0
+#define PIN_R0	1
+#define PIN_R1	2
+#define PIN_R2	3
 
-const int redPins[] = {32, 27};
-const int greenPins[] = {14, 4};
-const int bluePins[] = {16, 18}; // 19
-const PinConfig pins(4,5,6,7,8,  9,10,11,12,13,14,  15,16,17,18,21,  1,2);
+#define PIN_G0	4
+#define PIN_G1	5
+#define PIN_G2	6
+
+#define PIN_B0	7
+#define PIN_B1	8
+
+#define HSYNC	23
+#define VSYNC	15
+
+const PinConfig pins(
+PIN_R0, PIN_R1, PIN_R2, PIN_NULL, PIN_NULL,
+PIN_G0, PIN_G1, PIN_G2, PIN_NULL, PIN_NULL, PIN_NULL,
+PIN_B0, PIN_B1, PIN_NULL, PIN_NULL, PIN_NULL,
+HSYNC, VSYNC);
 
 VGA vga;
 Apple2Machine machine;
@@ -49,15 +51,12 @@ unsigned long memlast = 0;
 
 void loop()
 {
-	//unsigned char color[] = { vga.RGB(255, 0, 0),  vga.RGB(0, 255, 0), vga.RGB(0, 0, 255) };
 	vga.clear(0);
 
 	long long p = 17050;// *1.2f;
 	machine.Run((int)p);
 
 	//delay(1000);
-	//vga.fillRect(0, 0, vga.xres, vga.yres, color[colorindex]);
-	//colorindex = colorindex + 1 >= 3 ? 0 : colorindex+1;
 	vga.show();
 
 	if(millis() - heapCheckMillis > 1000)
