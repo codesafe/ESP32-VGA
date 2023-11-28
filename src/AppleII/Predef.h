@@ -74,8 +74,7 @@ struct Color
 
 	int GetColor()
 	{
-		int color;
-		color = (r << 24 & 0xF000) | (b << 16 & 0xF00) |(g << 8 & 0xF0) | 0x0F;
+		int color = (r << 24 & 0xF000) | (b << 16 & 0xF00) |(g << 8 & 0xF0) | 0x0F;
 		return color;
 	}
 };

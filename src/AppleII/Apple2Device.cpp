@@ -454,8 +454,7 @@ int Apple2Device::GetScreenMode()
 	{
 		if (hires_Mode)
 			return HIRES_MIX_MODE;
-
-		if (hires_Mode == false)
+		else
 			return LORES_MIX_MODE;
 	}
 

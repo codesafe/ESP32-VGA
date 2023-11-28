@@ -14,7 +14,7 @@ Memory::Memory()
 
 Memory::~Memory()
 {
-
+	Destroy();
 }
 
 void Memory::Create()
