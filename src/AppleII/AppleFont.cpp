@@ -211,7 +211,7 @@ void AppleFont::Create()
 
 }
 
-void AppleFont::RenderFont(unsigned char* backbuffer, int fontnum, int posx, int posy, bool inv)
+void AppleFont::RenderFont(Color* backbuffer, int fontnum, int posx, int posy, bool inv)
 {
 	int pos = 0;
 	for(int y=0; y<FONT_Y; y++)
@@ -220,21 +220,21 @@ void AppleFont::RenderFont(unsigned char* backbuffer, int fontnum, int posx, int
 			unsigned char c = inv ? invfont[fontnum][pos++] : font[fontnum][pos++];
 			if (c == 1)
 			{
-				/*
 				if(backbuffer == NULL)
-					DrawPixel(posx + x, posy + y, GREEN);
+				{
+//					DrawPixel(posx + x, posy + y, GREEN);
+				}
 				else
-					backbuffer[((posy+y)*SCREENSIZE_X) + (posx + x)] = GREEN;
-					*/
+					backbuffer[((posy+y)*SCREENSIZE_X) + (posx + x)] = Color(0, 0XFF, 0 );
 			}
 			else
 			{
-				/*
 				if (backbuffer == NULL)
-					DrawPixel(posx + x, posy + y, BLACK);
+				{
+//					DrawPixel(posx + x, posy + y, BLACK);
+				}
 				else
-					backbuffer[((posy + y) * SCREENSIZE_X) + (posx + x)] = BLACK;
-					*/
+					backbuffer[((posy + y) * SCREENSIZE_X) + (posx + x)] = Color(0, 0, 0 );
 			}
 		}
 }

@@ -24,7 +24,7 @@
 #define HSYNC	1
 #define VSYNC	2
 
-#define FORMAT_SPIFFS_IF_FAILED true
+
 
 const PinConfig pins(
 PIN_R0, PIN_R1, PIN_R2, PIN_NULL, PIN_NULL,
@@ -119,12 +119,9 @@ void setup()
 	machine->InitMachine();
 }
 
-int colorindex = 0;
 unsigned long heapCheckMillis = 0;
 unsigned long memlast = 0;
-
-
-
+int frame = 0;
 
 void loop()
 {
@@ -132,10 +129,13 @@ void loop()
 
 	long long p = 17050;// *1.2f;
 	machine->Run((int)p);
-
-	//delay(1000);
+    machine->Render(vga, frame);
 	vga->show();
 
+    if (frame++ > TARGET_FRAME) 
+        frame = 0;
+
+	//delay(1000);
 	if(millis() - heapCheckMillis > 15000)
 	{
 		unsigned int memcurr = ESP.getFreeHeap();

@@ -6,6 +6,8 @@
 #include "AppleMem.h"
 #include "Apple2Device.h"
 
+class VGA;
+
 class Apple2Machine
 {
 public:
@@ -24,8 +26,7 @@ public:
 	void InitMachine();
 	void Reset();
 	void Run(int cycle);
-	void Render(int frame);
-	void FileDroped(char* path);
+	void Render(VGA *vga, int frame);
 
 	void LoadMachine(std::string path);
 	void DumpMachine(std::string path);

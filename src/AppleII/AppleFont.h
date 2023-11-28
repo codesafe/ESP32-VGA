@@ -2,8 +2,6 @@
 #define APPLE2_FONT_H
 
 #include "Predef.h"
-//#include "raylib.h"
-
 
 
 class AppleFont
@@ -18,7 +16,7 @@ public:
 	~AppleFont();
 
 	void Create();
-	void RenderFont(unsigned char *backbuffer, int fontnum, int x, int y, bool inv);
+	void RenderFont(Color *backbuffer, int fontnum, int x, int y, bool inv);
 
 };
 

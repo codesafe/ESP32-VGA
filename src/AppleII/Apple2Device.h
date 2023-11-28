@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <string>
 #include "AppleFont.h"
-//#include "SDL_joystick.h"
+#include "./Tools/Log.h"
+#include "./Tools/FileSystem.h"
 
 class CPU;	// 6502 cpu
 class Memory;
@@ -35,12 +36,13 @@ struct FloppyDrive
 
 	FloppyDrive()
 	{
-		data = (BYTE*)ps_malloc(232960);
+		DEBUG_PRINTLN("Construct FloppyDrive");
+		data = (BYTE*)ps_malloc(DISKSIZE);
 	}
 
 	void Reset()
 	{
-		memset(data, 0, 232960);
+		memset(data, 0, DISKSIZE);
 		memset(filename,0, 400);
 		readOnly = false;
 		motorOn = false;
@@ -65,10 +67,6 @@ public:
 
 	//////////////////////////////////////////////////////////////////////////
 
-	// 패들정보
-
-	//////////////////////////////////////////////////////////////////////////
-
 	// 현재 플로피 디스크 (1,2)
 	int	currentDrive;
 
@@ -90,7 +88,7 @@ public:
 
 private:
 	CPU* cpu;
-	unsigned char* backbuffer;	// Render Backbuffer
+	Color* backbuffer;	// Render Backbuffer
 	//Texture2D renderTexture;
 	//Image renderImage;
 
@@ -115,6 +113,10 @@ private:
 	int pIdxB[2];
 	int halfTrackPos[2];
 	BYTE dLatch;
+
+	////////////////////////////////////////////////
+
+	FileSystem filesystem;
 
 	////////////////////////////////////////////////
 
@@ -144,16 +146,17 @@ public:
 
 	BYTE SoftSwitch(Memory* mem, WORD address, BYTE value, bool WRT);
 	void PlaySound();
-	void Render(Memory& mem, int frame);
+	void Render( Memory& mem, int frame);
 
 	void UpdateInput();
 
 	bool UpdateFloppyDisk();
 	void InsetFloppy();
 
-	void FileDroped(char* path);
 	bool GetDiskMotorState();
 	std::string GetDiskName(int i);
+
+	Color *getBackBuffer();
 };
 
 

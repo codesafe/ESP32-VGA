@@ -40,7 +40,7 @@
 #define SCREENSIZE_X	280
 #define SCREENSIZE_Y	192
 
-#define TARGET_FRAME	60
+#define TARGET_FRAME	30
 
 #define TEXT_MODE		0
 #define LORES_MODE		1
@@ -50,9 +50,35 @@
 
 #define AUDIOBUFFERSIZE		4096
 
+#define DISKSIZE	232960
+
 #define GAMEPAD_LEFT	0
 #define GAMEPAD_RIGHT	1
 #define GAMEPAD_UP		2
 #define GAMEPAD_DOWN	3
+
+struct Color
+{
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+	unsigned char a;
+
+	Color(unsigned char _r, unsigned char _g, unsigned char _b)
+	{
+		r = _r;
+		g = _g;
+		b = _b;
+		a = 0xFF;
+	}
+
+	int GetColor()
+	{
+		int color;
+		color = (r << 24 & 0xF000) | (b << 16 & 0xF00) |(g << 8 & 0xF0) | 0x0F;
+		return color;
+	}
+};
+
 
 #endif

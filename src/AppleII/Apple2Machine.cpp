@@ -2,7 +2,7 @@
 #include "rombios.h"
 #include "Apple2Machine.h"
 #include "./Tools/Log.h"
-
+#include "./VGA/ESP32S3VGA.h"
 
 Apple2Machine::Apple2Machine()
 {
@@ -17,17 +17,12 @@ Apple2Machine::~Apple2Machine()
 void Apple2Machine::InitMachine()
 {
 	mem.Create();
-
 	device.InsetFloppy();
-
 	// unset the Power-UP byte
 	mem.WriteByte(0x3F4, 0);
-
 	cpu.Reset(mem);
-
-	// dirty hack, fix soon... if I understand why
-	mem.WriteByte(0x4D, 0xAA);   // Joust crashes if this memory location equals zero
-	mem.WriteByte(0xD0, 0xAA);   // Planetoids won't work if this memory location equals zero
+	mem.WriteByte(0x4D, 0xAA);   // Just crashes if this memory location equals zero
+	mem.WriteByte(0xD0, 0xAA);   // won't work if this memory location equals zero
 
 	device.Create(&cpu);
 	mem.device = &device;
@@ -39,10 +34,12 @@ void Apple2Machine::InitMachine()
 // 롬을 내장
 bool Apple2Machine::Booting()
 {
+	DEBUG_PRINTLN("====> BOOTING ...");
+	DEBUG_PRINTLN("Load Apple II Rom");
 	memcpy(mem.rom, appleIIrom, ROMSIZE);
+	DEBUG_PRINTLN("Load Disk II");
 	memcpy(mem.sl6, diskII, SL6SIZE);
 	cpu.Reset(mem);
-
 	return true;
 }
 
@@ -53,7 +50,7 @@ bool Apple2Machine::UploadRom()
 
 	// load the Apple II+ ROM
 	BYTE* rom =(BYTE*)ps_malloc(ROMSIZE);
-	FILE* fp = fopen("/loderunner.nib", "rb"); 
+	FILE* fp = fopen("/apple2.rom", "rb"); 
 	if (fp)
 	{
 #if 0
@@ -120,41 +117,27 @@ void Apple2Machine::Run(int cycle)
 	}
 }
 
-void Apple2Machine::Render(int frame)
+void Apple2Machine::Render(VGA *vga, int frame)
 {
 	device.Render(mem, frame);
+
+	Color * backbuffer = device.getBackBuffer();
+	for(int y=0; y<SCREENSIZE_Y; y++)
+		for(int x=0; x<SCREENSIZE_X; x++)
+		{
+			Color color = backbuffer[y*SCREENSIZE_X+x];
+			vga->dot(x,y,color.GetColor());
+		}
 }
 
-void Apple2Machine::FileDroped(char* path)
-{
-	device.FileDroped(path);
-}
 
 // DUMP파일을 로드하여 재개
 void Apple2Machine::LoadMachine(std::string path)
 {
-	//FILE* fp = fopen("appleIIdump.dmp", "rb");
-	FILE* fp = fopen(path.c_str(), "rb");
-	if (fp != NULL)
-	{
-		mem.LoadDump(fp);
-		cpu.LoadDump(fp);
-		device.LoadDump(fp);
-		fclose(fp);
-	}
 }
 
 // 현재의 모든 상태를 저장
 void Apple2Machine::DumpMachine(std::string path)
 {
-	path += ".dmp";
-
-	FILE* fp = fopen(path.c_str(), "wb");
-
-	mem.Dump(fp);
-	cpu.Dump(fp);
-	device.Dump(fp);
-
-	fclose(fp);
 }
 
