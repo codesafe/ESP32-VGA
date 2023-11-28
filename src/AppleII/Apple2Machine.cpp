@@ -107,7 +107,7 @@ void Apple2Machine::Run(int cycle)
 		return;
 	}
 
-	device.UpdateInput();
+	//device.UpdateInput();
 	cpu.Run(mem, cycle);
 	while (1)
 	{

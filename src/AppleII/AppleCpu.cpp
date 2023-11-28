@@ -80,6 +80,8 @@ void CPU::Reset()
 // reset all register
 void CPU::Reset(Memory &mem)
 {
+	DEBUG_PRINTLN("Reset CPU");
+
 	A = 0;
 	X = 0;
 	Y = 0;
@@ -93,6 +95,8 @@ void CPU::Reset(Memory &mem)
 
 void CPU::Reboot(Memory& mem)
 {
+	DEBUG_PRINTLN("Reboot CPU");
+
 	mem.WriteByte(0x3F4, 0);
 	PC = mem.ReadByte(0xFFFC) | (mem.ReadByte(0xFFFD) << 8);
 	SP = 0xFD;
