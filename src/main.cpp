@@ -99,11 +99,11 @@ void setup()
 		Serial.println("PSRAM not available");
 
 
-    if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
-	{
-        Serial.println("SPIFFS Mount Failed");
-        return;
-    }
+    //if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
+	//{
+    //    Serial.println("SPIFFS Mount Failed");
+    //   return;
+    //}
 
 	//listDir(SPIFFS, "/", 0);
 	//readFile(SPIFFS, "/loderunner.nib");
