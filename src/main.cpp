@@ -10,53 +10,40 @@
 
 //pin configuration
 #define PIN_NULL	0
+
 #define PIN_R0	4
 #define PIN_R1	5
 #define PIN_R2	6
+#define PIN_R3	7
+#define PIN_R4	15
 
-#define PIN_G0	10
-#define PIN_G1	11
-#define PIN_G2	12
+#define PIN_G0	16
+#define PIN_G1	17
+#define PIN_G2	18
+#define PIN_G3	8
+#define PIN_G4	3
 
-#define PIN_B0	13
-#define PIN_B1	14
+#define PIN_B0	10
+#define PIN_B1	11
+#define PIN_B2	12
+#define PIN_B3	13
+#define PIN_B4	14
 
-#define HSYNC	1
-#define VSYNC	2
+#define HSYNC	48
+#define VSYNC	47
 
 
 
 const PinConfig pins(
-PIN_R0, PIN_R1, PIN_R2, PIN_NULL, PIN_NULL,
-PIN_G0, PIN_G1, PIN_G2, PIN_NULL, PIN_NULL, PIN_NULL,
-PIN_B0, PIN_B1, PIN_NULL, PIN_NULL, PIN_NULL,
+PIN_R0, PIN_R1, PIN_R2, PIN_R3, PIN_R4,
+PIN_G0, PIN_G1, PIN_G2, PIN_G3, PIN_G4, PIN_NULL,
+PIN_B0, PIN_B1, PIN_B2, PIN_B3, PIN_B4,
 HSYNC, VSYNC);
 
 VGA *vga;
 Apple2Machine *machine;
 
-void readFile(fs::FS &fs, const char * path)
-{
-    Serial.printf("Reading file: %s\r\n", path);
-
-    File file = fs.open(path);
-    if(!file || file.isDirectory()){
-        Serial.println("- failed to open file for reading");
-        return;
-    }
-
-    Serial.println("- read from file:");
-//    while(file.available()){
-//        Serial.write(file.read());
-//    }
-
-	unsigned char *buf = (unsigned char *)ps_malloc(232960);
-	int s = file.readBytes((char*)buf, 232960);
-	Serial.printf("Reading : %d\r\n", s);
-	free(buf);
-    file.close();
-}
-
+#if 0
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
 {
     Serial.printf("Listing directory: %s\r\n", dirname);
@@ -88,6 +75,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
         file = root.openNextFile();
     }
 }
+#endif
 
 //initial setup
 void setup()
@@ -113,7 +101,7 @@ void setup()
 
 	DEBUG_PRINTLN("MODE320x200");
 	Mode mode = Mode::MODE_320x200x70;
-	if(!vga->init(pins, mode, 8, 2)) while(1) delay(1);
+	if(!vga->init(pins, mode, 16, 2)) while(1) delay(1);
 
 	DEBUG_PRINTLN("INIT Machine");
 	machine->InitMachine();
