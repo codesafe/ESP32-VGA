@@ -62,14 +62,14 @@ struct Color
 	unsigned char r;
 	unsigned char g;
 	unsigned char b;
-	unsigned char a;
+	//unsigned char a;
 
 	Color(unsigned char _r, unsigned char _g, unsigned char _b)
 	{
 		r = _r;
 		g = _g;
 		b = _b;
-		a = 0xFF;
+		//a = 0xFF;
 	}
 
 	int GetColor()

@@ -99,7 +99,7 @@ void Apple2Machine::Reset()
 	Booting();
 }
 
-void Apple2Machine::Run(int cycle)
+void Apple2Machine::Run(long long cycle)
 {
 /*
 	if (device.resetMachine)
@@ -114,7 +114,7 @@ void Apple2Machine::Run(int cycle)
 	{
 		if( device.UpdateFloppyDisk() == false ) 
 			break;
-		cpu.Run(mem, 10000);
+		cpu.Run(mem, 1000);
 	}
 }
 

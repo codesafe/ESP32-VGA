@@ -315,7 +315,7 @@ public:
 	void Reboot(Memory& mem);
 
 	void SetPCAddress(WORD addr);
-	int Run(Memory& mem, int cycle);
+	int Run(Memory& mem, long long cycle);
 
 	void SetRegister(BYTE type, BYTE value);
 	BYTE GetRegister(BYTE type);
@@ -329,51 +329,51 @@ public:
 	void SetCarryFlagNegative(WORD value);
 	void SetOverflow(BYTE oldv0, BYTE v0, BYTE v1);
 
-	BYTE Fetch(Memory& mem, int& cycle);
-	WORD FetchWord(Memory& mem, int& cycle);
+	BYTE Fetch(Memory& mem, long long& cycle);
+	WORD FetchWord(Memory& mem, long long& cycle);
 
-	BYTE ReadByte(Memory& mem, WORD add, int& cycle);
-	WORD ReadWord(Memory& mem, WORD addr, int& cycle);
+	BYTE ReadByte(Memory& mem, WORD add, long long& cycle);
+	WORD ReadWord(Memory& mem, WORD addr, long long& cycle);
 
-	void WriteByte(Memory& mem, BYTE value, int addr, int& cycle);
-	void WriteWord(Memory& mem, WORD value, int addr, int& cycle);
+	void WriteByte(Memory& mem, BYTE value, int addr, long long& cycle);
+	void WriteWord(Memory& mem, WORD value, int addr, long long& cycle);
 
 	//////////////////////////////////////////////////////////////////////////
 
 	// memory Addressing mode
 	// Zero page
-	WORD addr_mode_ZP(Memory& mem, int& cycle);
+	WORD addr_mode_ZP(Memory& mem, long long& cycle);
 	// Zero page + X
-	WORD addr_mode_ZPX(Memory& mem, int& cycle);
+	WORD addr_mode_ZPX(Memory& mem, long long& cycle);
 	// Zero page + X
-	WORD addr_mode_ZPY(Memory& mem, int& cycle);
+	WORD addr_mode_ZPY(Memory& mem, long long& cycle);
 	// ABS
-	WORD addr_mode_ABS(Memory& mem, int& cycle);
+	WORD addr_mode_ABS(Memory& mem, long long& cycle);
 	// ABS + X
-	WORD addr_mode_ABSX(Memory& mem, int& cycle);
+	WORD addr_mode_ABSX(Memory& mem, long long& cycle);
 	// ABS + X : Page 넘어가는것 무시
-	WORD addr_mode_ABSX_NoPage(Memory& mem, int& cycle);
+	WORD addr_mode_ABSX_NoPage(Memory& mem, long long& cycle);
 	// ABS + Y
-	WORD addr_mode_ABSY(Memory& mem, int& cycle);
+	WORD addr_mode_ABSY(Memory& mem, long long& cycle);
 	// ABS + Y : Page 넘어가는것 무시
-	WORD addr_mode_ABSY_NoPage(Memory& mem, int& cycle);
+	WORD addr_mode_ABSY_NoPage(Memory& mem, long long& cycle);
 
 	// Indexed indirect X
-	WORD addr_mode_INDX(Memory& mem, int& cycle);
+	WORD addr_mode_INDX(Memory& mem, long long& cycle);
 	// Indexed indirect Y
-	WORD addr_mode_INDY(Memory& mem, int& cycle);
+	WORD addr_mode_INDY(Memory& mem, long long& cycle);
 
 	//////////////////////////////////////////////////////////////////////////
 
-	void PushStackByte(Memory& mem, BYTE value, int& cycle);
-	void PushStackWord(Memory& mem, WORD value, int& cycle);
-	BYTE PopStackByte(Memory& mem, int& cycle);
-	WORD PopStackWord(Memory& mem, int& cycle);
+	void PushStackByte(Memory& mem, BYTE value, long long& cycle);
+	void PushStackWord(Memory& mem, WORD value, long long& cycle);
+	BYTE PopStackByte(Memory& mem, long long& cycle);
+	WORD PopStackWord(Memory& mem, long long& cycle);
 
 	//////////////////////////////////////////////////////////////////////////
 
-	void LoadToRegister(Memory& mem, int& cycle, BYTE& reg);
-	void LoadToRegisterFromZP(Memory& mem, int& cycle, BYTE& reg);
+	void LoadToRegister(Memory& mem, long long& cycle, BYTE& reg);
+	void LoadToRegisterFromZP(Memory& mem, long long& cycle, BYTE& reg);
 
 	WORD GetStackAddress();
 
@@ -384,12 +384,12 @@ public:
 	void Execute_CMP(BYTE v);
 	void Execute_CPX(BYTE v);
 	void Execute_CPY(BYTE v);
-	void Execute_ASL(BYTE &v, int &cycle);
-	void Execute_LSR(BYTE& v, int& cycle);
-	void Execute_ROL(BYTE& v, int& cycle);
-	void Execute_ROR(BYTE& v, int& cycle);
+	void Execute_ASL(BYTE &v, long long& cycle);
+	void Execute_LSR(BYTE& v, long long& cycle);
+	void Execute_ROL(BYTE& v, long long& cycle);
+	void Execute_ROR(BYTE& v, long long& cycle);
 
-	void Execute_BRANCH(bool v, bool condition, Memory& mem, int& cycle);
+	void Execute_BRANCH(bool v, bool condition, Memory& mem, long long& cycle);
 
 	//////////////////////////////////////////////////////////////////////////	Snapshot
 

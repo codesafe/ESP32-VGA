@@ -1,12 +1,11 @@
 #include <Arduino.h>
 #include <SPIFFS.h>
-
 #include "./Tools/Log.h"
 #include "./VGA/ESP32S3VGA.h"
 #include "./AppleII/Apple2Machine.h"
-
 #include "FS.h"
-//#include "SPIFFS.h"
+
+//#define COLORBIT_8    true
 
 //pin configuration
 #define PIN_NULL	0
@@ -29,16 +28,22 @@
 #define PIN_B3	13
 #define PIN_B4	14
 
-#define HSYNC	48
+#define HSYNC	21//48
 #define VSYNC	47
-
 
 
 const PinConfig pins(
 PIN_R0, PIN_R1, PIN_R2, PIN_R3, PIN_R4,
-PIN_G0, PIN_G1, PIN_G2, PIN_G3, PIN_G4, PIN_G4,//PIN_NULL,
+PIN_G0, PIN_G1, PIN_NULL, PIN_G2, PIN_G3, PIN_G4,
 PIN_B0, PIN_B1, PIN_B2, PIN_B3, PIN_B4,
 HSYNC, VSYNC);
+
+const PinConfig pins_8(
+PIN_NULL, PIN_NULL, PIN_R0, PIN_R2, PIN_R4, // 3
+PIN_NULL, PIN_NULL, PIN_NULL, PIN_G0, PIN_G2, PIN_G4, // 3
+PIN_NULL, PIN_NULL, PIN_NULL, PIN_B0, PIN_B3,
+HSYNC, VSYNC);
+
 
 VGA *vga;
 Apple2Machine *machine;
@@ -93,28 +98,34 @@ void setup()
     }
 
 	listDir(SPIFFS, "/", 0);
-	//readFile(SPIFFS, "/loderunner.nib");
 
 	machine = new Apple2Machine();
 	vga = new VGA();
 
-	DEBUG_PRINTLN("MODE320x200");
-	Mode mode = Mode::MODE_320x240x60;
-	if(!vga->init(pins, mode, 16, 2)) while(1) delay(1);
-    vga->start();
+	DEBUG_PRINTLN("===> MODE320x200");
+    Mode mode = Mode::MODE_320x200x70;
+#ifdef COLORBIT_8
+    if(!vga->init(pins_8, mode, 8, 2)) while(1) delay(1);
+#else    
+	if(!vga->init(pins, mode, 16, 1)) while(1) delay(1);
+#endif
 
-	DEBUG_PRINTLN("INIT Machine");
+    vga->start();
+	DEBUG_PRINTLN("===> INIT Machine");
 	machine->InitMachine();
 }
 
 unsigned long heapCheckMillis = 0;
+
 unsigned long memlast = 0;
 int frame = 0;
+int fpscount = 0;
+unsigned long fpsMillis = 0;
 
 void loop()
 {
 	//vga->clear(vga->rgb(0,0,255));
-	int p = 17050;// * 2;
+	long long p = 17050 * 4;
 	machine->Run(p);
     machine->Render(vga, frame);
 	vga->show();
@@ -132,6 +143,14 @@ void loop()
 		Serial.printf("Heap : %d / %d\n", ESP.getFreeHeap(), ESP.getHeapSize());
 		Serial.printf("PSRam : %d / %d\n", ESP.getFreePsram(), ESP.getPsramSize());
 	}
+
+    fpscount++;
+    if( millis() - fpsMillis > 1000)
+    {
+        fpsMillis = millis();
+        Serial.printf("FPS : %d\n", fpscount);
+        fpscount = 0;
+    }
 
 }
 

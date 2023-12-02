@@ -18,20 +18,13 @@ struct _RECT
 // two disk ][ drive units
 struct FloppyDrive
 {
-	// the full disk image pathname
 	char filename[400];
-	// based on the image file attributes
 	bool readOnly;
 	// nibblelized disk image
-	//BYTE data[232960];
 	BYTE *data;
-	// motor status
 	bool motorOn;
-	// writes to file are not implemented
 	bool writeMode;
-	// current track position
 	BYTE track;
-	// ptr to nibble under head position
 	WORD nibble;
 
 	FloppyDrive()

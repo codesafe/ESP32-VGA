@@ -28,9 +28,8 @@
 
 VGA::VGA()
 {
-	DEBUG_PRINTLN("INIT VGA");
-
-	bufferCount = 1;
+	DEBUG_PRINTLN("===> INIT VGA");
+	bufferCount = 2;
 	dmaBuffer = 0;
 	usePsram = true;
 	dmaChannel = 0;

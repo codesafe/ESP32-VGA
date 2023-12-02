@@ -25,7 +25,7 @@ public:
 
 	void InitMachine();
 	void Reset();
-	void Run(int cycle);
+	void Run(long long cycle);
 	void Render(VGA *vga, int frame);
 
 	void LoadMachine(std::string path);

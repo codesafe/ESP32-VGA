@@ -189,14 +189,14 @@ void CPU::SetOverflow(BYTE oldv0, BYTE v0, BYTE v1)
 	Flag.V = sign0 && sign1;
 }
 
-BYTE CPU::Fetch(Memory& mem, int &cycle)
+BYTE CPU::Fetch(Memory& mem, long long &cycle)
 {
 	BYTE c = mem.ReadByte(PC++);
 	cycle--;
 	return c;
 }
 
-WORD CPU::FetchWord(Memory& mem, int& cycle)
+WORD CPU::FetchWord(Memory& mem, long long &cycle)
 {
 	BYTE c0 = mem.ReadByte(PC++);
 	BYTE c1 = mem.ReadByte(PC++);
@@ -208,27 +208,27 @@ WORD CPU::FetchWord(Memory& mem, int& cycle)
 }
 
 // 메모리에서 읽는데 cycle소모 x / PC무관 할때 (Zero page같은것)
-BYTE CPU::ReadByte(Memory& mem, WORD addr, int& cycle)
+BYTE CPU::ReadByte(Memory& mem, WORD addr, long long &cycle)
 {
 	BYTE c = mem.ReadByte(addr);
 	cycle--;
 	return c;
 }
 
-WORD CPU::ReadWord(Memory& mem, WORD addr, int& cycle)
+WORD CPU::ReadWord(Memory& mem, WORD addr, long long &cycle)
 {
 	WORD c = mem.ReadWord(addr);
 	cycle -= 2;
 	return c;
 }
 
-void CPU::WriteByte(Memory& mem, BYTE value, int addr, int& cycle)
+void CPU::WriteByte(Memory& mem, BYTE value, int addr, long long &cycle)
 {
 	mem.WriteByte(addr, value);
 	cycle --;
 }
 
-void CPU::WriteWord(Memory& mem, WORD value, int addr, int& cycle)
+void CPU::WriteWord(Memory& mem, WORD value, int addr, long long &cycle)
 {
 	mem.WriteWord(value, addr);
 	cycle-=2;
@@ -246,7 +246,7 @@ WORD CPU::GetStackAddress()
 }
 
 // Byte를 Stack에 Push
-void CPU::PushStackByte(Memory& mem, BYTE value, int& cycle)
+void CPU::PushStackByte(Memory& mem, BYTE value, long long &cycle)
 {
 	WriteByte(mem, value, GetStackAddress(), cycle);
 	SP--;
@@ -254,7 +254,7 @@ void CPU::PushStackByte(Memory& mem, BYTE value, int& cycle)
 }
 
 // Word를 Stack에 Push
-void CPU::PushStackWord(Memory& mem, WORD value, int& cycle)
+void CPU::PushStackWord(Memory& mem, WORD value, long long &cycle)
 {
 	// Hi byte 먼저
 	WriteByte(mem, value >> 8, GetStackAddress(), cycle);
@@ -265,7 +265,7 @@ void CPU::PushStackWord(Memory& mem, WORD value, int& cycle)
 }
 
 // 스택에서 1 byte POP
-BYTE CPU::PopStackByte(Memory& mem, int& cycle)
+BYTE CPU::PopStackByte(Memory& mem, long long &cycle)
 {
  	SP++;
  	BYTE popbyte = ReadByte(mem, GetStackAddress(), cycle);
@@ -274,7 +274,7 @@ BYTE CPU::PopStackByte(Memory& mem, int& cycle)
 }
 
 // Stack에서 Word pop
-WORD CPU::PopStackWord(Memory& mem, int& cycle)
+WORD CPU::PopStackWord(Memory& mem, long long &cycle)
 {
 	SP++;
 	BYTE lo = ReadByte(mem, GetStackAddress(), cycle);
@@ -286,13 +286,13 @@ WORD CPU::PopStackWord(Memory& mem, int& cycle)
 	return popWord;
 }
 
-int CPU::Run(Memory &mem, int cycle)
+int CPU::Run(Memory &mem, long long _cycle)
 {
-	const int CyclesRequested = cycle;
 
+	long long cycle = _cycle;
 	while (cycle > 0)
 	{
-		int prevcycle = cycle;
+		long long prevcycle = cycle;
 
 		WORD prevPC = PC;
 		// 여기에서 cycle 하나 소모
@@ -1766,20 +1766,20 @@ int CPU::Run(Memory &mem, int cycle)
 				break;
 		}
 
-		tick+= prevcycle-cycle;
+		//tick+= prevcycle-cycle;
 	}
 
-	return CyclesRequested - cycle;
+	return 0;//CyclesRequested - cycle;
 }
 
-void CPU::LoadToRegister(Memory& mem, int& cycle, BYTE &reg)
+void CPU::LoadToRegister(Memory& mem, long long &cycle, BYTE &reg)
 {
 	reg = Fetch(mem, cycle);
 	SetZeroNegative(reg);
 }
 
 // ZP에 있는 값을 레지스터에 로드
-void CPU::LoadToRegisterFromZP(Memory& mem, int& cycle, BYTE& reg)
+void CPU::LoadToRegisterFromZP(Memory& mem, long long &cycle, BYTE& reg)
 {
 	BYTE zpa = Fetch(mem, cycle);
 	reg = ReadByte(mem, zpa, cycle);
@@ -1789,14 +1789,14 @@ void CPU::LoadToRegisterFromZP(Memory& mem, int& cycle, BYTE& reg)
 ////////////////////////////////////////////////////////////////////////////// memory addressing mode
 
 // ZeroPage
-WORD  CPU::addr_mode_ZP(Memory &mem, int &cycle)
+WORD  CPU::addr_mode_ZP(Memory &mem, long long &cycle)
 {
 	BYTE address = Fetch(mem, cycle);
 	return address;
 }
 
 // Zero page + X
-WORD CPU::addr_mode_ZPX(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ZPX(Memory& mem, long long &cycle)
 {
 	BYTE address = Fetch(mem, cycle) + X;
 	cycle--;
@@ -1804,7 +1804,7 @@ WORD CPU::addr_mode_ZPX(Memory& mem, int& cycle)
 }
 
 // Zero page + X
-WORD CPU::addr_mode_ZPY(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ZPY(Memory& mem, long long &cycle)
 {
 	BYTE address = Fetch(mem, cycle) + Y;
 	cycle--;
@@ -1812,14 +1812,14 @@ WORD CPU::addr_mode_ZPY(Memory& mem, int& cycle)
 }
 
 // ABS
-WORD CPU::addr_mode_ABS(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ABS(Memory& mem, long long &cycle)
 {
 	WORD address = FetchWord(mem, cycle);
 	return address;
 }
 
 // ABS + X
-WORD CPU::addr_mode_ABSX(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ABSX(Memory& mem, long long &cycle)
 {
 #if 1
 	BYTE lo = Fetch(mem, cycle);
@@ -1841,7 +1841,7 @@ WORD CPU::addr_mode_ABSX(Memory& mem, int& cycle)
 }
 
 // ABS + X : Page 넘어가는것 무시(그냥 하드웨어가 이렇게 생김)
-WORD CPU::addr_mode_ABSX_NoPage(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ABSX_NoPage(Memory& mem, long long &cycle)
 {
 	WORD address = FetchWord(mem, cycle);
 	address += X;
@@ -1850,7 +1850,7 @@ WORD CPU::addr_mode_ABSX_NoPage(Memory& mem, int& cycle)
 }
 
 // ABS + Y
-WORD CPU::addr_mode_ABSY(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ABSY(Memory& mem, long long &cycle)
 {
 	BYTE lo = Fetch(mem, cycle);
 	BYTE hi = Fetch(mem, cycle);
@@ -1861,7 +1861,7 @@ WORD CPU::addr_mode_ABSY(Memory& mem, int& cycle)
 	return address;
 }
 
-WORD CPU::addr_mode_ABSY_NoPage(Memory& mem, int& cycle)
+WORD CPU::addr_mode_ABSY_NoPage(Memory& mem, long long &cycle)
 {
 	WORD address = FetchWord(mem, cycle);
 	address += Y;
@@ -1869,7 +1869,7 @@ WORD CPU::addr_mode_ABSY_NoPage(Memory& mem, int& cycle)
 	return address;
 }
 
-WORD CPU::addr_mode_INDX(Memory& mem, int& cycle)
+WORD CPU::addr_mode_INDX(Memory& mem, long long &cycle)
 {
 	BYTE t = Fetch(mem, cycle);
 	BYTE inx = t + X;
@@ -1879,7 +1879,7 @@ WORD CPU::addr_mode_INDX(Memory& mem, int& cycle)
 }
 
 
-WORD CPU::addr_mode_INDY(Memory& mem, int& cycle)
+WORD CPU::addr_mode_INDY(Memory& mem, long long &cycle)
 {
 #if 1
 	// zero page에서 word 읽고 Y레지스터와 더한 주소의 1바이트를 A에 로드
@@ -1985,7 +1985,7 @@ void CPU::Execute_CPY(BYTE v)
 	Flag.C = (Y >= v) != 0;
 }
 
-void CPU::Execute_ASL(BYTE &v, int &cycle)
+void CPU::Execute_ASL(BYTE &v, long long &cycle)
 {
 	Flag.C = (v & FLAG_NEGATIVE) > 0;
 	v = v << 1;
@@ -1993,7 +1993,7 @@ void CPU::Execute_ASL(BYTE &v, int &cycle)
 	SetZeroNegative(v);
 }
 
-void CPU::Execute_LSR(BYTE& v, int& cycle)
+void CPU::Execute_LSR(BYTE& v, long long &cycle)
 {
 	Flag.C = (v & 0x01);
 	v = v >> 1;
@@ -2008,7 +2008,7 @@ void CPU::Execute_LSR(BYTE& v, int& cycle)
   Operation:   +-< |7|6|5|4|3|2|1|0| <- |C| <-+         N Z C I D V
 				   +-+-+-+-+-+-+-+-+    +-+             / / / _ _ _
 */
-void CPU::Execute_ROL(BYTE& v, int& cycle)
+void CPU::Execute_ROL(BYTE& v, long long &cycle)
 {
 	// 이전의 carry flag값을 Shift후의 0bit에 채워준다
 	BYTE oldcarry = Flag.C ? 0x01 : 0x00;
@@ -2026,7 +2026,7 @@ void CPU::Execute_ROL(BYTE& v, int& cycle)
   Operation:   +-> |C| -> |7|6|5|4|3|2|1|0| >-+         N Z C I D V
 				   +-+    +-+-+-+-+-+-+-+-+             / / / _ _ _
 */
-void CPU::Execute_ROR(BYTE& v, int& cycle)
+void CPU::Execute_ROR(BYTE& v, long long &cycle)
 {
 	// 최하비트가 1인가? -> 다음 캐리비트로 설정
 	BYTE oldcarry = (v & FLAG_CARRY) > 0;
@@ -2039,7 +2039,7 @@ void CPU::Execute_ROR(BYTE& v, int& cycle)
 }
 
 
-void CPU::Execute_BRANCH(bool v, bool condition, Memory &mem, int &cycle)
+void CPU::Execute_BRANCH(bool v, bool condition, Memory &mem, long long &cycle)
 {
 	SBYTE offset = (SBYTE)Fetch(mem, cycle);
 	if (v == condition)

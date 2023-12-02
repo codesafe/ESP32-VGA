@@ -420,12 +420,15 @@ void Apple2Device::DrawPoint(int x, int y, int r, int g, int b)
 		color.r = r; 
 		color.g = g; 
 		color.b = b; 
-		color.a = 0xff;
+		//color.a = 0xff;
 	}
 	else
 	{
 		float grayscale = (0.299f * r) + (0.587f * g) + (0.114f * b);
-		color.r = 0; color.g = (BYTE)grayscale; color.b = 0; color.a = 0xff;
+		color.r = 0; 
+		color.g = (BYTE)grayscale; 
+		color.b = 0;
+		//color.a = 0xff;
 	}
 
 	backbuffer[y * SCREENSIZE_X + x] = color;
@@ -708,10 +711,10 @@ void Apple2Device::UpdateInput()
 bool Apple2Device::UpdateFloppyDisk()
 {
 	// Floppy motor가 off이거나 updatedrive이 0이되면 끝
-	if (disk[currentDrive].motorOn == false || updatedrive++ == 0)
-		return false;
-	else
+	if (disk[currentDrive].motorOn && ++updatedrive)
 		return true;
+	else
+		return false;
 }
 
 void Apple2Device::InsetFloppy()
@@ -725,7 +728,8 @@ void Apple2Device::InsetFloppy()
 //	InsertFloppy("rom/DOS3.3.nib", 0);
 //	InsertFloppy("/loderunner.nib", 0);
 //	InsertFloppy("/karateka.nib", 0);
-	InsertFloppy("/u4-1.nib", 0);
+//	InsertFloppy("/u4-1.nib", 0);
+	InsertFloppy("/u5-1.nib", 0);
 
 }
 
