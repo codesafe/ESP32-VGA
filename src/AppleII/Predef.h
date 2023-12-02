@@ -40,7 +40,7 @@
 #define SCREENSIZE_X	280
 #define SCREENSIZE_Y	192
 
-#define TARGET_FRAME	30
+#define TARGET_FRAME	60
 
 #define TEXT_MODE		0
 #define LORES_MODE		1

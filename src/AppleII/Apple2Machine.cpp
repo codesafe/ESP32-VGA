@@ -101,12 +101,13 @@ void Apple2Machine::Reset()
 
 void Apple2Machine::Run(int cycle)
 {
+/*
 	if (device.resetMachine)
 	{
 		Reset();
 		return;
 	}
-
+*/
 	//device.UpdateInput();
 	cpu.Run(mem, cycle);
 	while (1)
@@ -126,7 +127,8 @@ void Apple2Machine::Render(VGA *vga, int frame)
 		for(int x=0; x<SCREENSIZE_X; x++)
 		{
 			Color color = backbuffer[y*SCREENSIZE_X+x];
-			vga->dot(x,y,color.GetColor());
+			//Serial.printf("Color : %d / %d / %d\n", color.r, color.g, color.b);
+			vga->dot(x,y,vga->rgb(color.r, color.g, color.b));
 		}
 }
 

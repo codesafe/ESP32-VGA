@@ -36,14 +36,14 @@
 
 const PinConfig pins(
 PIN_R0, PIN_R1, PIN_R2, PIN_R3, PIN_R4,
-PIN_G0, PIN_G1, PIN_G2, PIN_G3, PIN_G4, PIN_NULL,
+PIN_G0, PIN_G1, PIN_G2, PIN_G3, PIN_G4, PIN_G4,//PIN_NULL,
 PIN_B0, PIN_B1, PIN_B2, PIN_B3, PIN_B4,
 HSYNC, VSYNC);
 
 VGA *vga;
 Apple2Machine *machine;
 
-#if 0
+#if 1
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
 {
     Serial.printf("Listing directory: %s\r\n", dirname);
@@ -86,22 +86,22 @@ void setup()
 	else
 		Serial.println("PSRAM not available");
 
+    if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
+	{
+        Serial.println("SPIFFS Mount Failed");
+       return;
+    }
 
-    //if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
-	//{
-    //    Serial.println("SPIFFS Mount Failed");
-    //   return;
-    //}
-
-	//listDir(SPIFFS, "/", 0);
+	listDir(SPIFFS, "/", 0);
 	//readFile(SPIFFS, "/loderunner.nib");
 
 	machine = new Apple2Machine();
 	vga = new VGA();
 
 	DEBUG_PRINTLN("MODE320x200");
-	Mode mode = Mode::MODE_320x200x70;
+	Mode mode = Mode::MODE_320x240x60;
 	if(!vga->init(pins, mode, 16, 2)) while(1) delay(1);
+    vga->start();
 
 	DEBUG_PRINTLN("INIT Machine");
 	machine->InitMachine();
@@ -113,18 +113,16 @@ int frame = 0;
 
 void loop()
 {
-	vga->clear(0);
-
-	long long p = 17050;// *1.2f;
-	machine->Run((int)p);
+	//vga->clear(vga->rgb(0,0,255));
+	int p = 17050;// * 2;
+	machine->Run(p);
     machine->Render(vga, frame);
 	vga->show();
 
     if (frame++ > TARGET_FRAME) 
         frame = 0;
 
-	//delay(1000);
-	if(millis() - heapCheckMillis > 15000)
+	if(millis() - heapCheckMillis > 150000)
 	{
 		unsigned int memcurr = ESP.getFreeHeap();
 		//Serial.printf("FREEHeap: %d; DIFF %d\n", memcurr, memcurr - memlast);

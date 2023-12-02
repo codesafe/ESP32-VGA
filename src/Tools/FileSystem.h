@@ -13,8 +13,8 @@ public :
      {
         DEBUG_PRINTLN("Construct FileSystem");
 
-        if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
-            Serial.println("SPIFFS Mount Failed");
+        //if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
+        //    Serial.println("SPIFFS Mount Failed");
      }
 
     ~FileSystem()
@@ -31,8 +31,8 @@ public :
             return -1;
         }
 
-        //Serial.println("- read from file:");
         int readlen = file.read(buffer, len);
+        Serial.printf("- read from file : %d\n", readlen);
         file.close();
 
         return readlen;

@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "fstream": "cpp"
-    }
+        "fstream": "cpp",
+        "cstdlib": "cpp"
+    },
+    "idf.portWin": "COM4"
 }

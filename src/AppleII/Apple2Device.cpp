@@ -407,7 +407,7 @@ void Apple2Device::ClearScreen()
 	for (int y = 0; y < SCREENSIZE_Y; y++)
 		for (int x = 0; x < SCREENSIZE_X; x++)
 		{
-			Color color(30, 30, 30);
+			Color color(0, 30, 0);
 			backbuffer[y * SCREENSIZE_X + x] = color;
 		}
 }
@@ -417,7 +417,10 @@ void Apple2Device::DrawPoint(int x, int y, int r, int g, int b)
 	Color color(0,0,0);
 	if (colorMonitor)
 	{
-		color.r = r; color.g = g; color.b = b; color.a = 0xff;
+		color.r = r; 
+		color.g = g; 
+		color.b = b; 
+		color.a = 0xff;
 	}
 	else
 	{
@@ -643,8 +646,13 @@ bool Apple2Device::InsertFloppy(const char* filename, int drv)
 {
 	int readlen = filesystem.ReadFile(filename, disk[drv].data, DISKSIZE);
 	if ( readlen != DISKSIZE)
+	{
+		Serial.printf("Read Floppy Fail : %s\n",filename);
 		return false;
+	}
 
+
+	Serial.printf("Read Floppy OK : %s\n",filename);
 	sprintf(disk[drv].filename, "%s", filename);
 
 	// 일단 쓰기 불가 모드로 진행
@@ -713,14 +721,12 @@ void Apple2Device::InsetFloppy()
 	disk[0].Reset();
 	disk[1].Reset();
 
+	Serial.printf("Insert Floppy");
 //	InsertFloppy("rom/DOS3.3.nib", 0);
-	InsertFloppy("/LodeRunner.nib", 0);
-//	InsertFloppy("rom/Pacman.nib", 0);
-//	InsertFloppy("rom/karateka.nib", 0);
-//	InsertFloppy("rom/Ultima4-1.nib", 0);
-//	InsertFloppy("rom/Ultima5-1.nib", 0);
-//	InsertFloppy("rom/Captain Goodnight-A.nib", 0);
-//	InsertFloppy("rom/Where in the World is Carmen Sandiego-A.nib", 0);
+//	InsertFloppy("/loderunner.nib", 0);
+//	InsertFloppy("/karateka.nib", 0);
+	InsertFloppy("/u4-1.nib", 0);
+
 }
 
 bool Apple2Device::GetDiskMotorState()
